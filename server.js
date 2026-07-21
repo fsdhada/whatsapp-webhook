@@ -42,12 +42,46 @@ app.post('/webhook', (req, res) => {
     (body.entry || []).forEach(entry => {
       (entry.changes || []).forEach(change => {
         const value = change.value;
-        (value.messages || []).forEach(message => {
-          console.log(
-            `[webhook] Message from ${message.from} (type: ${message.type}):\n`,
-            JSON.stringify(message, null, 2)
-          );
-        });
+        (value.messages || []).forEach(async (message) => {
+
+  console.log(
+    `[webhook] Message from ${message.from} (type: ${message.type}):`
+  );
+
+  console.log("Message Text:", message.text?.body);
+
+  try {
+
+    await axios.post(
+      "https://graph.facebook.com/v25.0/1262625736937425/messages",
+      {
+        messaging_product: "whatsapp",
+        to: message.from,
+        text: {
+          body: "Hello! 👋 Thank you for contacting us."
+        }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    console.log("✅ Reply sent successfully");
+
+  } catch (error) {
+
+    console.log("❌ Failed to send reply");
+
+    console.log(
+      error.response?.data || error.message
+    );
+
+  }
+
+});
         (value.statuses || []).forEach(status => {
           console.log(
             `[webhook] Status update for message ${status.id}: ${status.status}`
